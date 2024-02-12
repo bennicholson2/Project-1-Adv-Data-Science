@@ -1,5 +1,17 @@
+#Load the packages in
+library(Metrics)
+library(janitor)
+library(tidyverse)
+library(caret)
+library(Rcmdr)
+library(leaps)
+
+
 #Save the data, 'complex_retail_sales_dataset' as data
 data <- complex_retail_sales_dataset
+
+#Save the dataset as data
+set.seed(123)
 
 #Check for null values
 print(colSums(is.na(data)))
@@ -27,7 +39,7 @@ cor(complex_retail_sales_dataset[,c("AvgTemperature","CompetitorSpend",
                                     use="complete")
 
 #Create a BIC graph
-Rcmdr>  plot(regsubsets(Sales ~ AvgTemperature + CompetitorSpend + FootTraffic + 
+plot(regsubsets(Sales ~ AvgTemperature + CompetitorSpend + FootTraffic + 
 Holiday + OnlineTraffic + PromotionSpend + Weekday, 
 data=complex_retail_sales_dataset, nbest=1, nvmax=8), scale='bic')
 
@@ -57,10 +69,28 @@ R2(predictions, test_set$Sales)
 #find the MAE value
 MAE(predictions, test_set$Sales)
 
+# Calculate the mean and median of Sales in the training set
+mean_sales <- mean(train_set$Sales)
+median_sales <- median(train_set$Sales)
+
+# Create vectors of mean and median predictions for the test set
+mean_predictions <- rep(mean_sales, nrow(test_set))
+median_predictions <- rep(median_sales, nrow(test_set))
+
+# Calculate the MAE for the mean and median predictions
+mae_mean <- MAE(mean_predictions, test_set$Sales)
+mae_median <- MAE(median_predictions, test_set$Sales)
+
+# Print the MAE for the mean and median predictions
+print(paste("MAE for mean prediction:", mae_mean))
+print(paste("MAE for median prediction:", mae_median))
+
 #Use the k-fold method
 train_control <- trainControl(method = "cv",   number = 10)
 
 #implement the method
-model <- train(Sales ~ PromotionSpend + CompetitorSpend + FootTraffic + OnlineTraffic, data = train_set, method = "lm", trControl = train_control)
+model <- train(Sales ~ PromotionSpend + CompetitorSpend + FootTraffic + OnlineTraffic, 
+               data = train_set, method = "lm", trControl = train_control)
 
 print(model)
+
